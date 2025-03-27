@@ -1,0 +1,33 @@
+name: Deploy
+
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Message
+        run: echo "${{toJson(github)}}"
+
+      # This step uses the "actions/checkout@v4" action to check out the
+      # code in the repository so that we can run tests and deploy the
+      # application.
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # This step sets up the Node.js environment for the rest of the
+      # workflow. Node.js is the JavaScript runtime that we use to run
+      # our application.
+      #
+      # The "with" keyword is used to specify the Node.js version that
+      # we want to use. In this case, we're using Node.js version 20.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test

@@ -14,11 +14,11 @@
 # The step simply prints "Hello World" to the console.
 name: Hello World
 
-on: [push]
+on: [workflow_dispatch]
 
 jobs:
   hello:
     runs-on: ubuntu-latest
     steps:
-      - name: Hello World
-        run: echo "Hello World"
+      - name: Message
+        run: echo "${{toJson(github)}}"
