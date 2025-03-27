@@ -37,7 +37,9 @@ jobs:
 
   # Run continuous delivery
   build:
-    needs: test
+    # Can only run after the test job has completed
+    # We can add more deployment jobs here if we need to
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Message
@@ -55,3 +57,30 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  deploy:
+    # Can only run after the build job has completed
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Message
+        run: echo "Deploying...."
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: ./dist
