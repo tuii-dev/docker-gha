@@ -1,0 +1,24 @@
+# This is a GitHub Actions workflow file.
+# GitHub Actions is a continuous integration and continuous deployment (CI/CD) tool
+# that allows you to automate your build, test, and deployment pipeline.
+#
+# This workflow is triggered on every push to the repository.
+# This means that every time you push new code to your repository,
+# this workflow will run.
+#
+# The workflow consists of one job, which is named "hello".
+# The job runs on an "ubuntu-latest" environment, which is a virtual machine
+# running the latest version of Ubuntu.
+#
+# The job has one step, which is named "Hello World".
+# The step simply prints "Hello World" to the console.
+name: Hello World
+
+on: [push]
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello World
+        run: echo "Hello World"
