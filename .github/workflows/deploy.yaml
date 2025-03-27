@@ -1,6 +1,9 @@
 name: Deploy
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   # Run continuous integration
@@ -29,6 +32,18 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Cache node modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
       - name: Install dependencies
         run: npm ci
 
@@ -52,36 +67,39 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+
+      # Step 3: Restore npm cache
+      - name: Restore npm cache
+        id: cache-npm
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            ${{ runner.os }}-
+
+      # Step 4: Install dependencies (if cache miss)
       - name: Install dependencies
+        if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
         run: npm ci
 
       - name: Build
         run: npm run build
+
+      # Step 5: Upload build artifacts for deployment
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./dist # Path to your built site directory
 
   deploy:
     # Can only run after the build job has completed
     needs: [build]
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
     steps:
-      - name: Message
-        run: echo "Deploying...."
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
+      # Step 6: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          branch: main
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+        uses: actions/deploy-pages@v1
