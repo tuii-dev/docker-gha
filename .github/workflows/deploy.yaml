@@ -5,8 +5,13 @@ on:
     branches:
       - main
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  # Run continuous integration
   test:
     runs-on: ubuntu-latest
     steps:
@@ -14,24 +19,12 @@ jobs:
         run: |
           echo "${{toJson(github)}}"
           echo "Running tests..."
-
-      # This step uses the "actions/checkout@v4" action to check out the
-      # code in the repository so that we can run tests and deploy the
-      # application.
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # This step sets up the Node.js environment for the rest of the
-      # workflow. Node.js is the JavaScript runtime that we use to run
-      # our application.
-      #
-      # The "with" keyword is used to specify the Node.js version that
-      # we want to use. In this case, we're using Node.js version 20.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-
       - name: Cache node modules
         uses: actions/cache@v3
         env:
@@ -43,32 +36,23 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-
       - name: Install dependencies
         run: npm ci
-
       - name: Run tests
         run: npm test
 
-  # Run continuous delivery
   build:
-    # Can only run after the test job has completed
-    # We can add more deployment jobs here if we need to
     needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Message
         run: echo "Building...."
-
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-
-      # Step 3: Restore npm cache
       - name: Restore npm cache
         id: cache-npm
         uses: actions/cache@v3
@@ -78,28 +62,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
             ${{ runner.os }}-
-
-      # Step 4: Install dependencies (if cache miss)
       - name: Install dependencies
         if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
         run: npm ci
-
       - name: Build
         run: npm run build
-
-      # Step 5: Upload build artifacts for deployment
-      - name: Upload artifacts
-        uses: actions/upload-pages-artifact@v1
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v2
         with:
-          path: ./dist # Path to your built site directory
+          path: ./dist
 
   deploy:
-    # Can only run after the build job has completed
     needs: [build]
     runs-on: ubuntu-latest
     environment:
       name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      # Step 6: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+        id: deployment
+        uses: actions/deploy-pages@v2
