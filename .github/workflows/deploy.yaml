@@ -37,6 +37,7 @@ jobs:
 
   # Run continuous delivery
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Message
