@@ -3,11 +3,14 @@ name: Deploy
 on: [push]
 
 jobs:
-  deploy:
+  # Run continuous integration
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Message
-        run: echo "${{toJson(github)}}"
+        run: |
+          echo "${{toJson(github)}}"
+          echo "Running tests..."
 
       # This step uses the "actions/checkout@v4" action to check out the
       # code in the repository so that we can run tests and deploy the
@@ -31,3 +34,23 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+  # Run continuous delivery
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Message
+        run: echo "Building...."
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
