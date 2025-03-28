@@ -74,12 +74,17 @@ jobs:
         run: npm run build
       - name: Verify dist contents
         run: |
+          |
+          echo "Contents of dist directory:"
           ls -la dist
+          echo "\nContents of dist/assets directory (if exists):"
+          ls -la dist/assets || echo "assets directory not found"
           [ -f dist/index.html ] || exit 1
+          [ -d dist/assets ] || echo "Warning: assets directory is missing"
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist/**
+          path: ./dist
           name: github-pages
 
   deploy:
