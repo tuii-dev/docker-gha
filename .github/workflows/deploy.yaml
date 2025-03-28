@@ -79,6 +79,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3 # Updated from v2 to v3
         with:
           path: ./dist
+          name: gh-pages-artifact
 
   deploy:
     needs: [build]
@@ -91,5 +92,5 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v3
         with:
-          artifact_name: github-pages
+          artifact_name: gh-pages-artifact
           target_branch: gh-pages
