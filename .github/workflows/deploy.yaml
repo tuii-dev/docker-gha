@@ -71,6 +71,10 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Verify dist contents
+        run: |
+          ls -la dist
+          [ -f dist/index.html ] || exit 1
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3 # Updated from v2 to v3
         with:
@@ -85,4 +89,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3 # Updated from v2 to v3
+        uses: actions/deploy-pages@v3
+        with:
+          artifact_name: github-pages
+          target_branch: gh-pages
