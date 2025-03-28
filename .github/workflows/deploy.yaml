@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    # The paths-ignore option is used to specify files
+    # that should not trigger the workflow.
+    paths-ignore:
+      - "**/README.md"
+      - "**/LICENSE"
+      - "./.github/workflows/*"
   workflow_dispatch:
 
 permissions:
@@ -22,25 +28,10 @@ jobs:
           echo "Running tests..."
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node action
+        uses: ./.github/actions/setup-node-setup-cache
         with:
-          node-version: "20"
-      - name: Cache node modules
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - name: Install dependencies
-        run: npm ci
+          node-version: "22"
       - name: Run tests
         run: npm test
 
@@ -52,24 +43,10 @@ jobs:
         run: echo "Building...."
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node action
+        uses: ./.github/actions/setup-node-from-cache
         with:
-          node-version: "20"
-      - name: Restore npm cache
-        id: cache-npm
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-            ${{ runner.os }}-
-      - name: Install dependencies
-        if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
-        run: npm ci
+          node-version: "22"
       - name: Clean and Build
         run: |
           rm -rf dist
